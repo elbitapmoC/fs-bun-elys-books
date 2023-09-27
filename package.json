@@ -6,6 +6,8 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@elysiajs/cookie": "^0.7.0",
+    "@elysiajs/jwt": "^0.7.0",
     "elysia": "latest"
   },
   "devDependencies": {
