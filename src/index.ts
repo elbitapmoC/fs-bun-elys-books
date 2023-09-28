@@ -3,6 +3,7 @@ import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
 import { jwt } from "@elysiajs/jwt";
 import { BooksDatabase } from "./db";
+
 class Unauthorized extends Error {
   constructor() {
     super("Unauthorized");
@@ -16,7 +17,6 @@ const app = new Elysia()
   })
   .onError(({ code, error }) => {
     let status;
-
     switch (true) {
       case code === "VALIDATION":
         status = 400;
@@ -29,24 +29,27 @@ const app = new Elysia()
         break;
       default:
         status = 500;
+        break;
     }
 
-    return new Response(error.toString(), { status: status });
+    return new Response(error.toString(), { status: 401 });
   })
   .use(cookie())
   .use(
     jwt({
       name: "jwt",
-      secret: "supersecret",
+      secret: "super",
     })
   )
   .decorate("db", new BooksDatabase());
 
 app.get("/books", ({ db }) => db.getBooks());
+
 app.post("/books", ({ db, body }) => db.addBook(body), {
   body: t.Object({
     name: t.String(),
     author: t.String(),
+    id: t.Number(),
   }),
 });
 
@@ -62,18 +65,18 @@ app.put(
     }),
   }
 );
+
 app.get("/books/:id", async ({ db, params, jwt, cookie: { auth } }) => {
   const profile = await jwt.verify(auth);
-
   if (!profile) throw new Unauthorized();
-
   return db.getBook(parseInt(params.id));
 });
+
 app.delete("/books/:id", ({ db, params }) =>
   db.deleteBook(parseInt(params.id))
 );
 
-app.listen(8000);
+app.listen(3000);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
